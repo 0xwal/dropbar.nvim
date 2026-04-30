@@ -437,8 +437,9 @@ function dropbar_t:cat(plain)
   end
   local result = nil
   for _, component in ipairs(self.components) do
+    local sep_str = (component.data and component.data.no_separator_before) and '' or self.separator:cat(plain)
     result = result
-        and result .. self.separator:cat(plain) .. component:cat(plain)
+        and result .. sep_str .. component:cat(plain)
       or component:cat(plain)
   end
   local padding_left = string.rep(' ', self.padding.left)
@@ -514,6 +515,46 @@ function dropbar_t:_update()
         )
           symbol:on_click(min_width, n_clicks, button, modifiers)
         end
+      end
+    end
+  end
+
+  if configs.opts.bar.separator_after_path then
+    for i = 1, #self.components - 1 do
+      local sym = self.components[i]
+      local next_sym = self.components[i + 1]
+      if next_sym and sym.data and sym.data.path and (not next_sym.data or not next_sym.data.path) then
+        local sep = dropbar_symbol_t:new({
+          icon = configs.opts.bar.separator_after_path,
+          icon_hl = 'DropBarIconUIPathSeparator',
+          on_click = false,
+          data = { no_separator_before = true },
+        })
+
+        table.insert(self.components, i + 1, sep)
+
+        -- The component after the separator (previously next_sym) is now at i+2
+        local token_sym = self.components[i + 2]
+        if token_sym then
+          token_sym.data = token_sym.data or {}
+          token_sym.data.no_separator_before = true
+        end
+
+        for j = i + 1, #self.components do
+          self.components[j].bar_idx = j
+          self.components[j].callback_idx = j
+          if self.components[j].on_click then
+            _G.dropbar.callbacks['buf' .. self.buf]['win' .. self.win]['fn' .. j] = function(
+              min_width,
+              n_clicks,
+              button,
+              modifiers
+            )
+              self.components[j]:on_click(min_width, n_clicks, button, modifiers)
+            end
+          end
+        end
+        break
       end
     end
   end

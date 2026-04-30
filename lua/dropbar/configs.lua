@@ -369,6 +369,7 @@ M.opts = {
         return name:sub(1, 1)
       end,
     },
+    separator_after_path = '│ ',
     -- Interval of periodic garbage collection, i.e. remove winbars attached to
     -- invalid buffers/windows, in ms
     gc = {
