@@ -592,14 +592,20 @@ local function get_symbols(buf, win, _)
 
   if path_opts.abbreviate.enable then
     local n = #symbols
-    local keep_first = path_opts.abbreviate.keep_first
-    local keep_last = path_opts.abbreviate.keep_last
-    local abbreviator = path_opts.abbreviate.abbreviator
-    local middle_start = keep_first + 1
-    local middle_end = n - keep_last
+    local opts = path_opts.abbreviate
+    local abbreviator = opts.abbreviator
+    local start_idx, end_idx
 
-    if middle_start <= middle_end then
-      for i = middle_start, middle_end do
+    if opts.mode == 'end' then
+      start_idx = 1
+      end_idx = n - opts.keep_last
+    else
+      start_idx = opts.keep_first + 1
+      end_idx = n - opts.keep_last
+    end
+
+    if start_idx <= end_idx then
+      for i = start_idx, end_idx do
         symbols[i].name = abbreviator(symbols[i].name)
       end
     end

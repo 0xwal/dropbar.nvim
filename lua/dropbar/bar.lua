@@ -561,14 +561,31 @@ function dropbar_t:_update()
 
   if configs.opts.bar.abbreviate.enable then
     local n = #self.components
-    local keep_first = configs.opts.bar.abbreviate.keep_first
-    local keep_last = configs.opts.bar.abbreviate.keep_last
-    local abbreviator = configs.opts.bar.abbreviate.abbreviator
-    local middle_start = keep_first + 1
-    local middle_end = n - keep_last
+    local opts = configs.opts.bar.abbreviate
+    local abbreviator = opts.abbreviator
+    local start_idx, end_idx
 
-    if middle_start <= middle_end then
-      for i = middle_start, middle_end do
+    if opts.mode == 'end' then
+      -- Find the file component (last one with data.path from path source)
+      local file_idx = 0
+      for i = 1, n do
+        if self.components[i].data and self.components[i].data.path then
+          file_idx = i
+        end
+      end
+
+      -- Abbreviate everything before the file.
+      -- If no file is found (e.g., terminal), fallback to keep_last.
+      start_idx = 1
+      end_idx = file_idx > 0 and (file_idx - 1) or (n - opts.keep_last)
+    else
+      -- mode == 'start': Abbreviate the end, keeping the first 'keep_first' full
+      start_idx = opts.keep_first + 1
+      end_idx = n
+    end
+
+    if start_idx <= end_idx then
+      for i = start_idx, end_idx do
         self.components[i].name = abbreviator(self.components[i].name)
       end
     end

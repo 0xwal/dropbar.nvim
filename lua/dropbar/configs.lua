@@ -361,14 +361,15 @@ M.opts = {
       pivots = 'abcdefghijklmnopqrstuvwxyz',
     },
     truncate = true,
-    abbreviate = {
-      enable = false,
-      keep_first = 2,
-      keep_last = 3,
-      abbreviator = function(name)
-        return name:sub(1, 1)
-      end,
-    },
+      abbreviate = {
+        enable = false,
+        keep_first = 2,
+        keep_last = 3,
+        mode = 'start', -- 'start': abbreviate middle/end; 'end': abbreviate start
+        abbreviator = function(name)
+          return name:sub(1, 1)
+        end,
+      },
     separator_after_path = '│ ',
     -- Interval of periodic garbage collection, i.e. remove winbars attached to
     -- invalid buffers/windows, in ms
