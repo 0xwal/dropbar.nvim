@@ -518,6 +518,21 @@ function dropbar_t:_update()
     end
   end
 
+  if configs.opts.bar.abbreviate.enable then
+    local n = #self.components
+    local keep_first = configs.opts.bar.abbreviate.keep_first
+    local keep_last = configs.opts.bar.abbreviate.keep_last
+    local abbreviator = configs.opts.bar.abbreviate.abbreviator
+    local middle_start = keep_first + 1
+    local middle_end = n - keep_last
+
+    if middle_start <= middle_end then
+      for i = middle_start, middle_end do
+        self.components[i].name = abbreviator(self.components[i].name)
+      end
+    end
+  end
+
   self:redraw()
 end
 

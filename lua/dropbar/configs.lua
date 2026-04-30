@@ -53,7 +53,7 @@ M.opts = {
         end
 
         file_icon = devicon and devicon .. ' ' or file_icon
-        file_icon_hl = devicon_hl
+        file_icon_hl = devicon_hl or file_icon_hl
 
         return file_icon, file_icon_hl
       end,
@@ -361,6 +361,14 @@ M.opts = {
       pivots = 'abcdefghijklmnopqrstuvwxyz',
     },
     truncate = true,
+    abbreviate = {
+      enable = false,
+      keep_first = 2,
+      keep_last = 3,
+      abbreviator = function(name)
+        return name:sub(1, 1)
+      end,
+    },
     -- Interval of periodic garbage collection, i.e. remove winbars attached to
     -- invalid buffers/windows, in ms
     gc = {
@@ -712,6 +720,18 @@ M.opts = {
       preview = true,
       ---@type integer[]
       min_widths = {},
+      ---Abbreviate middle path components to save space
+      abbreviate = {
+        enable = false,
+        ---@type integer number of path components to keep full at the start
+        keep_first = 2,
+        ---@type integer number of path components to keep full at the end
+        keep_last = 3,
+        ---@type fun(name: string): string function to abbreviate middle components
+        abbreviator = function(name)
+          return name:sub(1, 1)
+        end,
+      },
     },
     treesitter = {
       max_depth = 16,

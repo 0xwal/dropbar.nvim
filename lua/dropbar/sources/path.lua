@@ -590,6 +590,21 @@ local function get_symbols(buf, win, _)
     symbols[#symbols] = path_opts.modified(symbols[#symbols])
   end
 
+  if path_opts.abbreviate.enable then
+    local n = #symbols
+    local keep_first = path_opts.abbreviate.keep_first
+    local keep_last = path_opts.abbreviate.keep_last
+    local abbreviator = path_opts.abbreviate.abbreviator
+    local middle_start = keep_first + 1
+    local middle_end = n - keep_last
+
+    if middle_start <= middle_end then
+      for i = middle_start, middle_end do
+        symbols[i].name = abbreviator(symbols[i].name)
+      end
+    end
+  end
+
   utils.bar.set_min_widths(symbols, path_opts.min_widths)
   return symbols
 end
