@@ -270,6 +270,36 @@ function dropbar_menu_t:eval_win_configs()
   -- Evaluate function-valued window configurations
   self._win_configs = self:merge_win_configs(self.win_configs)
 
+  -- Adjust position for root menus based on config
+  if not self.prev_menu and self._win_configs.relative == 'win' then
+    local pos = configs.opts.menu.position or 'top'
+    local win_height = vim.api.nvim_win_get_height(self.prev_win)
+    
+    if pos == 'bottom' then
+      self._win_configs.row = win_height
+      self._win_configs.anchor = 'SW'
+    elseif pos == 'auto' then
+      -- Check available screen space relative to the source window
+      local win_info = vim.fn.screenpos(self.prev_win, vim.fn.line('w0'), 0)
+      local win_top_row = win_info.row
+      local win_bottom_row = win_info.row + win_height - 1
+      
+      local space_below = vim.go.lines - win_bottom_row
+      local space_above = win_top_row
+      
+      if space_below >= space_above then
+        self._win_configs.row = win_height
+        self._win_configs.anchor = 'SW'
+      else
+        self._win_configs.row = 0
+        self._win_configs.anchor = 'NW'
+      end
+    else
+      self._win_configs.row = 0
+      self._win_configs.anchor = 'NW'
+    end
+  end
+
   -- See https://github.com/Bekaboo/dropbar.nvim/pull/90
   -- Ensure `win` field is nil if `relative` ~= 'win', else nvim will
   -- throw error
