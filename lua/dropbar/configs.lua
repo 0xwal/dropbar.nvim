@@ -365,10 +365,20 @@ M.opts = {
       enable = false,
       keep_first = 2,
       keep_last = 3,
-      mode = 'start', -- 'start': abbreviate middle/end; 'end': abbreviate start
+      mode = 'start', -- 'start': abbreviate middle/end; 'end': abbreviate start; 'both': abbreviate middle, keep both ends
       abbreviator = function(name)
         return name:sub(1, 1)
       end,
+      ---Path-specific abbreviation overrides generic settings for path components
+      path_keep_first = nil,
+      path_keep_last = nil,
+      path_mode = nil,
+      path_abbreviator = nil,
+      ---Treesitter/non-path-specific abbreviation overrides generic settings
+      ts_keep_first = nil,
+      ts_keep_last = nil,
+      ts_mode = nil,
+      ts_abbreviator = nil,
     },
     separator_after_path = '│ ',
     -- Interval of periodic garbage collection, i.e. remove winbars attached to

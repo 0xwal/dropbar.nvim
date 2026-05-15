@@ -562,31 +562,80 @@ function dropbar_t:_update()
   if configs.opts.bar.abbreviate.enable then
     local n = #self.components
     local opts = configs.opts.bar.abbreviate
-    local abbreviator = opts.abbreviator
-    local start_idx, end_idx
 
-    if opts.mode == 'end' then
-      -- Find the file component (last one with data.path from path source)
-      local file_idx = 0
-      for i = 1, n do
-        if self.components[i].data and self.components[i].data.path then
-          file_idx = i
-        end
+    -- Split into path and non-path groups for type-aware abbreviation
+    local path_idx, ts_idx = {}, {}
+    for i = 1, n do
+      if self.components[i].data and self.components[i].data.path then
+        table.insert(path_idx, i)
+      else
+        table.insert(ts_idx, i)
       end
-
-      -- Abbreviate everything before the file.
-      -- If no file is found (e.g., terminal), fallback to keep_last.
-      start_idx = 1
-      end_idx = file_idx > 0 and (file_idx - 1) or (n - opts.keep_last)
-    else
-      -- mode == 'start': Abbreviate the end, keeping the first 'keep_first' full
-      start_idx = opts.keep_first + 1
-      end_idx = n
     end
 
-    if start_idx <= end_idx then
-      for i = start_idx, end_idx do
-        self.components[i].name = abbreviator(self.components[i].name)
+    local function abbrev_group(indices, keep_first, keep_last, mode, fn)
+      local m = #indices
+      if m == 0 then return end
+      local s, e
+      if mode == 'end' then
+        s = 1
+        e = m - keep_last
+      elseif mode == 'both' then
+        s = keep_first + 1
+        e = m - keep_last
+      else -- 'start'
+        s = keep_first + 1
+        e = m
+      end
+      if s <= e then
+        for i = s, e do
+          self.components[indices[i]].name = fn(self.components[indices[i]].name)
+        end
+      end
+    end
+
+    if opts.path_mode then
+      abbrev_group(path_idx,
+        opts.path_keep_first or opts.keep_first,
+        opts.path_keep_last or opts.keep_last,
+        opts.path_mode,
+        opts.path_abbreviator or opts.abbreviator)
+    end
+
+    if opts.ts_mode then
+      abbrev_group(ts_idx,
+        opts.ts_keep_first or opts.keep_first,
+        opts.ts_keep_last or opts.keep_last,
+        opts.ts_mode,
+        opts.ts_abbreviator or opts.abbreviator)
+    end
+
+    -- Fallback to old unified behavior only when no type-specific mode is set
+    if not opts.path_mode and not opts.ts_mode then
+      local abbreviator = opts.abbreviator
+      local start_idx, end_idx
+
+      if opts.mode == 'end' then
+        local file_idx = 0
+        for i = 1, n do
+          if self.components[i].data and self.components[i].data.path then
+            file_idx = i
+          end
+        end
+        start_idx = 1
+        end_idx = file_idx > 0 and (file_idx - 1) or (n - opts.keep_last)
+      elseif opts.mode == 'both' then
+        start_idx = opts.keep_first + 1
+        end_idx = n - opts.keep_last
+      else
+        start_idx = opts.keep_first + 1
+        end_idx = n
+      end
+
+      if start_idx <= end_idx then
+        for i = start_idx, end_idx do
+          self.components[i].name = abbreviator(self.components[i].name)
+        end
       end
     end
   end
